@@ -17,7 +17,7 @@ if ( ! class_exists( 'XL_Addon_Install_Automation' ) ) {
 		}
 
 		public static function section_heading() {
-			$img     = WCCT_PLUGIN_URL . "admin/assets/img/autonamiicon.webp";
+			$img     = WCCT_PLUGIN_URL . "admin/assets/img/funnelkit-automation-logo.webp";
 			$heading = __( 'FunnelKit Automations CRM for WordPress by FunnelKit', 'woo-thank-you-page-nextmove-lite' );
 			$desc    = __( 'The All-In-One Email Marketing Platform For WordPress to Create Email Broadcasts and Automated Campaigns', 'woo-thank-you-page-nextmove-lite' );
 			?>

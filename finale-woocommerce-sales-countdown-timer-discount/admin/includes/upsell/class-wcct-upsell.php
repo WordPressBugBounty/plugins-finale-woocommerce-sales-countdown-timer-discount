@@ -91,19 +91,7 @@ class WCCT_Upsell {
 		add_action( 'admin_init', array( $this, 'xl_notice_variable' ), 11 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'notice_enqueue_scripts' ) );
 		add_action( 'wp_ajax_finale_upsells_dismiss', array( $this, 'xl_dismiss_notice' ) );
-
-		add_action( 'admin_notices', array( $this, 'xl_christmas_sale_notice' ), 10 );
-		add_action( 'admin_notices', array( $this, 'xl_bfcm_sale_notice' ), 10 );
-		add_action( 'admin_notices', array( $this, 'xl_pre_black_friday_sale_notice' ), 10 );
-		add_action( 'admin_notices', array( $this, 'xl_halloween_sale_notice' ), 10 );
-
-		add_action( 'admin_notices', array( $this, 'xl_upsells_notice_html_finale' ), 10 );
-		add_action( 'admin_notices', array( $this, 'xl_upsells_notice_html_nextmove' ), 10 );
-		add_action( 'admin_notices', array( $this, 'xl_upsells_notice_html_autonami' ), 10 );
-
-		add_action( 'admin_notices', array( $this, 'xl_html_finale_review' ), 10 );
-
-		add_action( 'admin_notices', array( $this, 'xl_upsells_notice_js' ), 20 );
+		add_action( 'admin_notices', array( $this, 'xl_marketing_notices' ), 10 );
 	}
 
 	/**
@@ -237,11 +225,11 @@ class WCCT_Upsell {
 	}
 
 	/**
-	 * Upsell notice html - Autonami
+	 * Upsell notice html - Funnelkit automation
 	 * @return type
 	 * @global boolean $xl_upsells_notice_active
 	 */
-	public function xl_upsells_notice_html_autonami() {
+	public function xl_upsells_notice_html_fka() {
 		global $xl_upsells_notice_active;
 		$short_slug = 'autonami';
 		if ( true === $xl_upsells_notice_active ) {
@@ -359,7 +347,35 @@ class WCCT_Upsell {
 	}
 
 	/**
-	 * Black Friday Cyber Monday Sale notice html
+	 * Christmas New Year Sale notice html
+	 * @throws Exception
+	 */
+	public function xl_marketing_notices() {
+		if ( apply_filters( 'xl_disable_marketing_notices', false ) ) {
+			return;
+		}
+		/** Christmas sale notices */
+		$this->xl_christmas_sale_notice();
+		/** Finale notices */
+		$this->xl_bfcm_sale_notice();
+		/** Black Friday notices  */
+		$this->xl_pre_black_friday_sale_notice();
+		/** Halloween sale notice */
+		$this->xl_halloween_sale_notice();
+		/** Finale notices */
+		$this->xl_upsells_notice_html_finale();
+		/** Next moved notice */
+		$this->xl_upsells_notice_html_nextmove();
+		/** Funnelkit automation notice  */
+		$this->xl_upsells_notice_html_fka();
+		/** Finale review */
+		$this->xl_html_finale_review();
+		/** Upsell notice */
+		$this->xl_upsells_notice_js();
+	}
+
+	/**
+	 * Finale notice
 	 * @throws Exception
 	 */
 	public function xl_bfcm_sale_notice() {
@@ -383,10 +399,6 @@ class WCCT_Upsell {
 		$xl_upsells_notice_active = true;
 	}
 
-	/**
-	 * Christmas New Year Sale notice html
-	 * @throws Exception
-	 */
 	public function xl_christmas_sale_notice() {
 		global $xl_upsells_notice_active;
 		if ( true === $xl_upsells_notice_active ) {
@@ -679,7 +691,7 @@ class WCCT_Upsell {
         <div class="updated" id="xl_notice_type_3" data-plugin="<?php echo $plugin_short_slug ?>" data-plugin-slug="<?php echo $plugin_slug; ?>">
             <div class="xl_upsell_area">
                 <div class="upsell_left_abs">
-                    <img src="<?php echo $image; ?>" alt="<?php echo $plugin_name ?>">
+                    <img class="Xli_image" src="<?php echo $image; ?>" alt="<?php echo $plugin_name ?>">
                 </div>
                 <div class="upsell_main_abs">
                     <h3><?php echo $heading ?></h3>
@@ -749,7 +761,7 @@ class WCCT_Upsell {
 	}
 
 	/**
-	 * Autonami upsell notice html
+	 * Funnelkit automation upsell notice html
 	 * @return type
 	 */
 	protected function autonami_notice_html() {
@@ -763,7 +775,7 @@ class WCCT_Upsell {
 		), self_admin_url( 'update.php' ) ), 'install-plugin_' . $plugin_slug );
 		$heading           = 'Struggling with abandoned carts? Deploy the smart automation engine, Autonami for Free.';
 		$sub_heading       = 'FunnelKit live captures emails on the checkout page, allows you to track abandoned and recovered carts through an intuitive dashboard, set delays in your emails, and more. The best part? You can segment your emails based on cart total, items in cart, coupons used & other such rules. No other cart recovery plugin comes close. Setup in under 20 secs to recover the lost revenue.';
-		$image             = plugin_dir_url( $this->plugin_path ) . 'admin/assets/img/autonami.png';
+		$image             = plugin_dir_url( $this->plugin_path ) . 'admin/assets/img/funnelkit-automation-logo.webp';
 
 		ob_start();
 		$this->repo_template( $plugin_slug, $plugin_short_slug, $plugin_name, $plugin_url, $heading, $sub_heading, $image );

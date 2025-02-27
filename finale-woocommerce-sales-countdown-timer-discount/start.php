@@ -5,14 +5,14 @@
 
 defined( 'ABSPATH' ) || exit;
 
-$this_current_version = '6.3';
+$this_current_version = '6.5';
 if ( ! class_exists( 'XL_Common' ) ) {
 
 	class XL_Common {
 
 		public static $is_xl_loaded = false;
 
-		public static $current_version = '6.3';
+		public static $current_version = '6.5';
 
 		public static function include_xl_core() {
 

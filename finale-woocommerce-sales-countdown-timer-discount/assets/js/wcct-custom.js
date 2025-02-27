@@ -114,12 +114,12 @@ var wcctAllUniqueTimers = [];
                 var displayFormat, valSecs, valMins, valHrs, classMins, classHrs, classDays, classSecWrap, classMinsWrap, classHrsWrap, classDaysWrap;
 
                 var timerSkin = childSpan.attr("data-timer-skin");
-                var label_day = $(this).attr("data-days") != "" ? $(this).attr("data-days") : 'day';
-                var label_hrs = $(this).attr("data-hrs") != "" ? $(this).attr("data-hrs") : 'hr';
-                var label_min = $(this).attr("data-mins") != "" ? $(this).attr("data-mins") : 'min';
-                var label_sec = $(this).attr("data-secs") != "" ? $(this).attr("data-secs") : 'sec';
-                var is_show_days = $(this).attr("data-is_days") != "" ? $(this).attr("data-is_days") : 'yes';
-                var is_show_hrs = $(this).attr("data-is-hrs") != "" ? $(this).attr("data-is-hrs") : 'yes';
+                var label_day = $(this).attr("data-days") != "" ? $('<div>').text($(this).attr("data-days")).html() : 'day';
+                var label_hrs = $(this).attr("data-hrs") != "" ? $('<div>').text($(this).attr("data-hrs")).html() : 'hr';
+                var label_min = $(this).attr("data-mins") != "" ? $('<div>').text($(this).attr("data-mins")).html() : 'min';
+                var label_sec = $(this).attr("data-secs") != "" ? $('<div>').text($(this).attr("data-secs")).html() : 'sec';
+                var is_show_days = $(this).attr("data-is_days") != "" ? $('<div>').text($(this).attr("data-is_days")).html() : 'yes';
+                var is_show_hrs = $(this).attr("data-is-hrs") != "" ? $('<div>').text($(this).attr("data-is-hrs")).html() : 'yes';
                 var modifiedDate = new Date().getTime() + parseInt(childSpan.attr("data-left")) * 1000;
 
                 childSpan.wcctCountdown(modifiedDate, {elapse: true}).on('update.countdown', function (event) {
