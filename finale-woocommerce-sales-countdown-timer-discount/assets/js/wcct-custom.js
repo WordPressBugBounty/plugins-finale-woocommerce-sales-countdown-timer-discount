@@ -168,6 +168,7 @@ var wcctAllUniqueTimers = [];
                                 dataType: 'json',
                                 data: {
                                     'action': 'wcct_clear_cache',
+                                    'wcct_token': wcct_data.cache_token || ''
                                 },
                                 success: function (result) {
                                     //
@@ -270,35 +271,5 @@ var wcctAllUniqueTimers = [];
             });
         }
     }
-
-    function wcct_ajax_call($this, expireTime) {
-        var instanceIDVal = $this.attr("data-id");
-        var typeVal = $this.find(".wcct_close").attr("data-ref");
-        $.ajax({
-            url: wcct_data.admin_ajax,
-            type: "POST",
-            data: {
-                action: 'wcct_close_sticky_bar',
-                type: typeVal,
-                expire_time: expireTime,
-                instance_id: instanceIDVal,
-            },
-            success: function (result) {
-            }
-        });
-    }
-
-    function wcct_timestamp_converter(UNIX_timestamp) {
-        var newDate = new Date(UNIX_timestamp * 1000);
-        var year = newDate.getFullYear();
-        var month = newDate.getMonth();
-        var date = newDate.getDate();
-        var hour = newDate.getHours();
-        var min = "0" + newDate.getMinutes();
-        var sec = "0" + newDate.getSeconds();
-        var time = year + "/" + (month + 1) + "/" + date + " " + hour + ":" + min.substr(-2) + ":" + sec.substr(-2);
-        return time;
-    }
-
 
 })(jQuery);

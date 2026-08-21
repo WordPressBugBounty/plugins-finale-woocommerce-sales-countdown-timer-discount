@@ -517,6 +517,14 @@ class XLWCCT_Admin {
 					),
 				),
 			) );
+
+            // Localize WCCTParams for AJAX nonce verification.
+            $wcct_params = array(
+                'ajax_nonce'            => wp_create_nonce( 'wcctaction-admin' ),
+                'ajax_url'              => admin_url( 'admin-ajax.php' ),
+                'search_products_nonce' => wp_create_nonce( 'search-products' ),
+            );
+            wp_localize_script( 'wcct_admin-js', 'WCCTParams', $wcct_params );
 		}
 		$page = filter_input( INPUT_GET, 'page' );
 		if ( empty( $page ) ) {
@@ -827,6 +835,11 @@ class XLWCCT_Admin {
 
 	public function maybe_activate_post() {
 		if ( isset( $_GET['action'] ) && ( $_GET['action'] === 'wcct-post-activate' || ( isset( $_GET['wcct_action'] ) && $_GET['wcct_action'] === 'wcct-post-activate' ) ) ) { // WPCS: input var ok, CSRF ok.
+			// Verify user has appropriate capability.
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_die( esc_html__( 'You do not have permission to perform this action.', 'finale-woocommerce-sales-countdown-timer-discount' ), 403 );
+			}
+
 			if ( wp_verify_nonce( $_GET['_wpnonce'], 'wcct-post-activate' ) ) { // WPCS: input var ok, CSRF ok.
 
 				$postID  = filter_input( INPUT_GET, 'postid' );
@@ -860,6 +873,10 @@ class XLWCCT_Admin {
 
 	public function maybe_deactivate_post() {
 		if ( isset( $_GET['action'] ) && ( $_GET['action'] === 'wcct-post-deactivate' || ( isset( $_GET['wcct_action'] ) && $_GET['wcct_action'] === 'wcct-post-deactivate' ) ) ) { // WPCS: input var ok, CSRF ok.
+			// Verify user has appropriate capability.
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_die( esc_html__( 'You do not have permission to perform this action.', 'finale-woocommerce-sales-countdown-timer-discount' ), 403 );
+			}
 
 			if ( wp_verify_nonce( $_GET['_wpnonce'], 'wcct-post-deactivate' ) ) { // WPCS: input var ok, CSRF ok.
 
@@ -1146,6 +1163,10 @@ class XLWCCT_Admin {
 	public function maybe_duplicate_post() {
 		global $wpdb;
 		if ( isset( $_GET['action'] ) && $_GET['action'] === 'wcct-duplicate' ) { // WPCS: input var ok, CSRF ok.
+			// Verify user has appropriate capability.
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_die( esc_html__( 'You do not have permission to perform this action.', 'finale-woocommerce-sales-countdown-timer-discount' ), 403 );
+			}
 
 			if ( wp_verify_nonce( $_GET['_wpnonce'], 'wcct-duplicate' ) ) { // WPCS: input var ok, CSRF ok.
 
@@ -1353,6 +1374,11 @@ class XLWCCT_Admin {
 
 		if ( ! isset( $_GET['xlplugin-finale-lite-update-notice'] ) || ! isset( $_GET['_xlplugin_finale_lite_update_notice_nonce'] ) ) {
 			return;
+		}
+
+		// Verify user has appropriate capability.
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'You do not have permission to perform this action.', 'finale-woocommerce-sales-countdown-timer-discount' ), 403 );
 		}
 
 		if ( ! wp_verify_nonce( sanitize_text_field( $_GET['_xlplugin_finale_lite_update_notice_nonce'] ), 'xlplugin_finale_lite_update_notice_nonce' ) ) {

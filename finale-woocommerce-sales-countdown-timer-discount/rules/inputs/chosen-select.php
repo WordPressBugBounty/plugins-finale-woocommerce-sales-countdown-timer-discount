@@ -1,6 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+#[AllowDynamicProperties]
 class WCCT_Input_Chosen_Select {
 
 	public function __construct() {

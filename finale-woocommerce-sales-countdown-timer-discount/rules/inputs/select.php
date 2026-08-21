@@ -1,6 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+#[AllowDynamicProperties]
 class WCCT_Input_Select {
 
 	public function __construct() {
@@ -34,16 +35,19 @@ class WCCT_Input_Select {
 		// value must be array
 		if ( ! is_array( $field['value'] ) ) {
 			// perhaps this is a default value with new lines in it?
-			if ( strpos( $field['value'], "\n" ) !== false ) {
+			$value_string = $field['value'] ?? '';
+			if ( strpos( $value_string, "\n" ) !== false ) {
 				// found multiple lines, explode it
-				$field['value'] = explode( "\n", $field['value'] );
+				$field['value'] = explode( "\n", $value_string );
 			} else {
-				$field['value'] = array( $field['value'] );
+				$field['value'] = array( $value_string );
 			}
 		}
 
 		// trim value
-		$field['value'] = array_map( 'trim', $field['value'] );
+		$field['value'] = array_map( function ( $val ) {
+			return trim( $val ?? '' );
+		}, $field['value'] );
 
 		$multiple = '';
 		if ( $field['multiple'] ) {

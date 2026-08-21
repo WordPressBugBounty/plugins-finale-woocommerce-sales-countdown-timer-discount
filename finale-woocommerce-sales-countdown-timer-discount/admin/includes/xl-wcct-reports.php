@@ -160,19 +160,19 @@ class XL_WCCT_Reports {
 		if ( $view_type === 'order_mb' ) {
 
 			?>
-			<p class="post-attributes-label-wrapper" style="margin-top: 0px;">
-				<label class="post-attributes-label">
+            <p class="post-attributes-label-wrapper" style="margin-top: 0px;">
+                <label class="post-attributes-label">
 					<?php echo __( 'Following campaigns were running during this order.', 'finale-woocommerce-sales-countdown-timer-discount' ); ?>
-				</label>
-			</p>
+                </label>
+            </p>
 
-			<ul style="list-style-type: disc;padding-left: 17px;">
+            <ul style="list-style-type: disc;padding-left: 17px;">
 				<?php
 				foreach ( $data as $campaign_key => $campaign_info ) {
 					printf( '<li>%s #<a href="%s">%s</a></li>', $campaign_info, WCCT_Common::get_edit_post_link( $campaign_key ), $campaign_key );
 				}
 				?>
-			</ul>
+            </ul>
 			<?php
 
 		}

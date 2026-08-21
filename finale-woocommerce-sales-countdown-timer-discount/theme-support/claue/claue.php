@@ -20,14 +20,14 @@ if ( ! function_exists( 'wcct_theme_helper_claue' ) ) {
 			add_action( 'woocommerce_single_product_summary', 'jas_claue_wc_before_price', 7 );
 			add_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_title' ), 5 );
 			add_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_review' ), 15 );
-			add_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_price' ), 18);
+			add_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_price' ), 18 );
 			add_action( 'woocommerce_after_single_product_summary', function () {
 				echo '<div class="wcct_clear wcct_clear_20"></div>';
 			}, 20.8 );
 		} else {
 			remove_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_title', 5 );
 			remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_review' ), 11 );
-			remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_above_title' ), 2);
+			remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_above_title' ), 2 );
 			remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_add_cart' ), 39 );
 
 			add_action( 'woocommerce_single_product_summary', 'woocommerce_template_single_title', 7 );

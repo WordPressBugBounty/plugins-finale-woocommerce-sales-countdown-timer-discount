@@ -639,9 +639,17 @@ jQuery(document).ready(function ($) {
 
     });
 
-    if ($("input[name='post_ID']").length > 0) {
-        $.post(ajaxurl, {'ID': $("input[name='post_ID']").val(), 'action': 'wcct_quick_view_html'}, function (res) {
-            $("#_wcct_qv_html").html(res);
+    if ($("input[name='post_ID']").length > 0 && typeof WCCTParams !== 'undefined') {
+        $.post(ajaxurl, {
+            'ID': $("input[name='post_ID']").val(),
+            'action': 'wcct_quick_view_html',
+            'security': WCCTParams.ajax_nonce
+        }, function (res) {
+            if (res.success === false) {
+                $("#_wcct_qv_html").html('');
+            } else {
+                $("#_wcct_qv_html").html(res);
+            }
         });
     }
 

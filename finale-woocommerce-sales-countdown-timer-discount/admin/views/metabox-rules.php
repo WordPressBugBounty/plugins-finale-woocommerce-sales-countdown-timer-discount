@@ -29,6 +29,7 @@ $pro_link = add_query_arg( array(
 ?>
 
 <div class="wcct-rules-builder woocommerce_options_panel">
+	<?php wp_nonce_field( 'wcct_save_campaign_' . $post->ID, 'wcct_save_nonce' ); ?>
 
     <div class="label">
         <h4><?php _e( 'Rules', 'finale-woocommerce-sales-countdown-timer-discount' ); ?></h4>
@@ -48,7 +49,7 @@ $pro_link = add_query_arg( array(
 				}
 				?>
 
-                <div class="wcct-rule-group-container" data-groupid="<?php echo $group_id; ?>">
+                <div class="wcct-rule-group-container" data-groupid="<?php echo esc_attr( $group_id ); ?>">
                     <div class="wcct-rule-group-header">
 						<?php if ( $group_counter == 0 ) : ?>
                             <h4><?php _e( 'Apply this Campaign when these conditions are matched:', 'finale-woocommerce-sales-countdown-timer-discount' ); ?></h4>
@@ -58,7 +59,7 @@ $pro_link = add_query_arg( array(
                         <a href="#" class="wcct-remove-rule-group button"></a>
                     </div>
 					<?php if ( is_array( $group ) ) : ?>
-                        <table class="wcct-rules" data-groupid="<?php echo $group_id; ?>">
+                        <table class="wcct-rules" data-groupid="<?php echo esc_attr( $group_id ); ?>">
                             <tbody>
 							<?php
 							foreach ( $group as $rule_id => $rule ) :
@@ -66,7 +67,7 @@ $pro_link = add_query_arg( array(
 									$rule_id = 'rule' . $rule_id;
 								}
 								?>
-                                <tr data-ruleid="<?php echo $rule_id; ?>" class="wcct-rule">
+                                <tr data-ruleid="<?php echo esc_attr( $rule_id ); ?>" class="wcct-rule">
                                     <td class="rule-type">
 										<?php
 										// allow custom location rules

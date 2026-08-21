@@ -1,5 +1,6 @@
 <?php
 defined( 'ABSPATH' ) || exit;
+
 #[AllowDynamicProperties]
 class WCCT_Admin_CountDown_Post_Options {
 

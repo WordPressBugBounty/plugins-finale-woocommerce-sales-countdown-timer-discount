@@ -2,8 +2,8 @@
 Contributors: xlplugins
 Tags: WooCommerce, WooCommerce Sales Countdown, WooCommerce Countdown Timer, WooCommerce Bulk Discount, WooCommerce Recurring Campaigns, WooCommerce Sales Scheduler, WooCommerce Pre Sale, WooCommerce Counter Bar, XLPlugins, eCommerce, WooCommerce Promotions, WooCommerce Deals, WooCommerce Discounts, WooCommerc Countdown Timer, WooCommerce Scheduled Sales
 Requires at least: 5.0
-Tested up to: 6.7.2
-Stable tag: 2.20.0
+Tested up to: 7.1
+Stable tag: 2.21.0
 License: GPLv3
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -262,6 +262,16 @@ We provide support through WordPress forums to Finale users. <a href="https://xl
 8. Single Product Page Preview
 
 == Change log ==
+
+= 2.21.0 (2026-08-20) =
+* Compatible up to WordPress 7.1
+* Compatible up to WooCommerce 11.0.1
+* Security: Couple of security fixes done. (#169)
+* Compatibility: Added support for WC Block-based cart. (#180)
+* Fixed: Duplicate discounts in native and FunnelKit carts. (#173)
+* Compatibility: Added support for WC Block-based checkout. (fix/151)
+* Fixed: Resolved an issue causing incorrect discounts in the cart. (fix/154,173,176)
+* Fixed: Added strikethrough pricing for variable products on the product listing page, making discounted prices clearly visible. (#178)
 
 = 2.20.0 (2025-02-26) =
 * Compatible upto WordPress 6.7.2

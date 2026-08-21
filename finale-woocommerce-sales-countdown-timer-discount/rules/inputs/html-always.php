@@ -1,6 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
+#[AllowDynamicProperties]
 class WCCT_Input_Html_Always {
 	public function __construct() {
 		// vars

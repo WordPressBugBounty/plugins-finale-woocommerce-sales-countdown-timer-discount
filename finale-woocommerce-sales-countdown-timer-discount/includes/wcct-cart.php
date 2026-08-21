@@ -29,7 +29,9 @@ class WCCT_cart {
 		 */
 		add_action( 'woocommerce_add_to_cart', array( $this, 'wcct_add_cart_data' ), 20, 6 );
 		add_action( 'woocommerce_cart_item_removed', array( $this, 'wcct_remove_cart_data' ), 19, 2 );
-		add_action( 'woocommerce_checkout_update_order_meta', array( $this, 'wcct_wc_checkout_update_order_meta' ), 10, 2 );
+		add_action( 'woocommerce_checkout_update_order_meta', array( $this, 'wcct_wc_checkout_update_order_meta' ), 10, 1 );
+		add_action( 'woocommerce_store_api_checkout_update_order_meta', array( $this, 'wcct_wc_checkout_update_order_meta' ), 10, 1 );
+
 
 		/** Increasing Finale campaign sold units on reduce stock hook */
 		add_action( 'woocommerce_reduce_order_stock', array( $this, 'wcct_upgrade_total_sold_unit' ), 10, 1 );
@@ -276,17 +278,14 @@ class WCCT_cart {
 	 * @global WooCommerce $woocommerce
 	 *
 	 */
-	public function wcct_wc_checkout_update_order_meta( $order_id, $posted ) {
+	public function wcct_wc_checkout_update_order_meta( $order ) {
 		global $woocommerce;
-		if ( empty( $order_id ) ) {
-			return false;
+		if ( is_numeric( $order ) ) {
+			$order = wc_get_order( $order );
 		}
-
-		$order = wc_get_order( $order_id );
 		if ( ! $order instanceof WC_Order ) {
 			return false;
 		}
-
 		$all_camps_data         = array();
 		$items                  = $woocommerce->cart->get_cart();
 		$get_session            = WC()->session->get( '_wcct_cart_data_' );
@@ -359,8 +358,7 @@ class WCCT_cart {
 					$finale_inventory_reduced_handle[ $pro_id ]['campaign_id'] = $campaign_id;
 					$finale_inventory_reduced_handle[ $pro_id ]['start_time']  = $start_time;
 					$finale_inventory_reduced_handle[ $pro_id ]['end_time']    = $end_time;
-
-					wcct_force_log( "Finale Inventory update\r\nOrder id: {$order_id} | product id: {$pro_id}\r\nkey: {$wcct_sold_out_key} | modified value: {$sold_unit_mod}\r\nkey {$wcct_sold_out_key} | modified value: {$sold_unit_mod}", 'finale-inventory.txt' );
+					wcct_force_log( "Finale Inventory update\r\nOrder id: {$order->get_id()} | product id: {$pro_id}\r\nkey: {$wcct_sold_out_key} | modified value: {$sold_unit_mod}\r\nkey {$wcct_sold_out_key} | modified value: {$sold_unit_mod}", 'finale-inventory.txt' );
 				}
 
 				$running_camps = isset( $get_prev_session_camps[ $key ] ) ? $get_prev_session_camps[ $key ] : array();
@@ -378,11 +376,10 @@ class WCCT_cart {
 				unset( $wcct_sold_out_key );
 				unset( $sold_unit );
 			}
-
 			if ( is_array( $finale_inventory_reduced_handle ) && count( $finale_inventory_reduced_handle ) > 0 ) {
 				$order->update_meta_data( '_wcct_goaldeal_sold_backup', maybe_serialize( $finale_inventory_reduced_handle ) );
 
-				wcct_force_log( "single event scheduled for order: {$order_id} on key: wcct_sold_stock_backup_time", 'finale-inventory.txt' );
+				wcct_force_log( "single event scheduled for order: {$order->get_id()} on key: wcct_sold_stock_backup_time", 'finale-inventory.txt' );
 			}
 
 			if ( ! empty( $all_camps_data ) ) {
@@ -536,20 +533,44 @@ class WCCT_cart {
 		}
 	}
 
+	/**
+	 * Processes a cart item to apply campaign-related data and adjust pricing.
+	 *
+	 * This method checks if the cart item has been processed, retrieves campaign data,
+	 * adjusts the price (including currency conversion), and ensures the product is excluded
+	 * from further discount processing. It ensures campaign rules are applied to the cart item.
+	 *
+	 * @param array $cart_item The cart item details, including product data.
+	 * @param array $values Additional values related to the cart item (not used in this method).
+	 *
+	 * @return array The updated cart item with campaign adjustments and price changes.
+	 */
+
 	public function maybe_setup_data( $cart_item = array(), $values = array() ) {
+		if ( ! isset( $this->processed_cart_items ) ) {
+			$this->processed_cart_items = array();
+		}
+
+		$cart_item_key = $cart_item['key'] ?? '';
+		if ( ! $cart_item_key ) {
+			return $cart_item;
+		}
+
+		if ( in_array( $cart_item_key, $this->processed_cart_items ) ) {
+			return $cart_item;
+		}
+
 		if ( WCCT_Common::$is_executing_rule ) {
 			return $cart_item;
 		}
 
 		$parentId = WCCT_Core()->public->wcct_get_product_parent_id( $cart_item['data'] );
-
 		WCCT_Core()->public->wcct_get_product_obj( $parentId );
 		$campaign_data = WCCT_Core()->public->get_single_campaign_pro_data( $parentId, true );
 
-		/**
-		 * Check if campaign data exists and non-empty and we have discount settings on.
-		 */
 		if ( empty( $campaign_data ) || ! isset( $campaign_data['deals'] ) || empty( $campaign_data['deals'] ) ) {
+			$this->processed_cart_items[] = $cart_item_key;
+
 			return $cart_item;
 		}
 
@@ -568,8 +589,11 @@ class WCCT_cart {
 		$cart_item['data']->set_price( $price );
 		array_push( WCCT_Core()->discount->excluded, $cart_item['data']->get_id() );
 
+		$this->processed_cart_items[] = $cart_item_key;
+
 		return $cart_item;
 	}
+
 
 	public function wcct_upgrade_total_sold_unit( $order ) {
 		if ( ! $order instanceof WC_Order ) {
@@ -581,7 +605,6 @@ class WCCT_cart {
 		if ( ! is_array( $order_sold_meta ) || count( $order_sold_meta ) === 0 ) {
 			$order_sold_meta = array();
 		}
-
 		if ( ! empty( $order_sold_meta ) ) {
 			foreach ( $order_sold_meta as $key => $val ) {
 				if ( is_array( $val ) && count( $val ) > 0 ) {
@@ -590,7 +613,6 @@ class WCCT_cart {
 
 					$wcct_sold_unit_key   = "_wcct_goaldeal_sold_unit_{$val['campaign_id']}_{$val['start_time']}_{$val['end_time']}";
 					$wcct_sold_total_unit = "_wcct_goaldeal_sold_unit_{$val['campaign_id']}";
-
 					update_post_meta( (int) $key, $wcct_sold_out_key, $val[ $wcct_sold_unit_key ] );
 					update_post_meta( (int) $key, $wcct_sold_total_out, $val[ $wcct_sold_total_unit ] );
 				}
@@ -602,7 +624,9 @@ class WCCT_cart {
 	}
 
 	public function maybe_skip_for_wc_product_addon( $bool, $price, $product ) {
-		if ( ( true === WCCT_Core()->discount->is_wc_calculating || true === $this->is_mini_cart ) && ( $product instanceof WC_Product ) && in_array( $product->get_id(), WCCT_Core()->discount->excluded ) ) {
+		$is_store_api = isset( WC()->cart->cart_context ) && 'store-api' === WC()->cart->cart_context;
+
+		if ( ( true === WCCT_Core()->discount->is_wc_calculating || true === $this->is_mini_cart || true === $is_store_api ) && ( $product instanceof WC_Product ) && in_array( $product->get_id(), WCCT_Core()->discount->excluded ) ) {
 			return true;
 		}
 

@@ -1,5 +1,6 @@
 <?php
 defined( 'ABSPATH' ) || exit;
+
 #[AllowDynamicProperties]
 class WCCT_remove_builder {
 	private static $ins = null;

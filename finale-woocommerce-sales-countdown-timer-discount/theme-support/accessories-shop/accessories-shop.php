@@ -11,14 +11,14 @@ function wcct_theme_helper_as() {
 	// removing wcct action hooks on theme
 	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_above_title' ), 2 );
 	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_title' ), 9 );
-	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_review' ), 11);
+	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_review' ), 11 );
 	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_price' ), 17 );
 	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_short_desc' ), 21 );
 
 	// adding wcct action hooks on theme
 	add_action( 'accessories_shop_woocommerce_above_title', array( $wcct_core, 'wcct_position_above_title' ), 10 );
 	add_action( 'accessories_shop_woocommerce_below_title', array( $wcct_core, 'wcct_position_below_title' ), 10 );
-	add_action( 'accessories_shop_woocommerce_below_review', array( $wcct_core, 'wcct_position_below_review' ), 10);
+	add_action( 'accessories_shop_woocommerce_below_review', array( $wcct_core, 'wcct_position_below_review' ), 10 );
 	add_action( 'accessories_shop_woocommerce_below_price', array( $wcct_core, 'wcct_position_below_price' ), 10 );
 	add_action( 'accessories_shop_woocommerce_below_short_desc', array( $wcct_core, 'wcct_position_below_short_desc' ), 10 );
 }

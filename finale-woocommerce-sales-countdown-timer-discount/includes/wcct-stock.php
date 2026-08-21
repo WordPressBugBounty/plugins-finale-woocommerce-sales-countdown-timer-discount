@@ -301,8 +301,8 @@ class WCCT_stock {
 		$get_goal_object = WCCT_Core()->public->wcct_get_goal_object( $single_data['goals'], $product_id );
 
 		if ( ! empty( $get_goal_object ) ) {
-			$quantity = isset($get_goal_object['quantity']) ? intval($get_goal_object['quantity']) : 0;
-			$sold_out = isset($get_goal_object['sold_out']) ? intval($get_goal_object['sold_out']) : 0;
+			$quantity      = isset( $get_goal_object['quantity'] ) ? intval( $get_goal_object['quantity'] ) : 0;
+			$sold_out      = isset( $get_goal_object['sold_out'] ) ? intval( $get_goal_object['sold_out'] ) : 0;
 			$available_qty = $quantity - $sold_out;
 		}
 
@@ -323,7 +323,8 @@ class WCCT_stock {
 	 * Specifically for WC 3.0 or greater
 	 */
 	public function wcct_modify_manage_stock( $bool, $product ) {
-		if ( WCCT_Common::$is_executing_rule ) {
+		/** Avoid stock modification for external products */
+		if ( $product instanceof WC_Product_External ) {
 			return $bool;
 		}
 
@@ -333,16 +334,20 @@ class WCCT_stock {
 		if ( empty( $single_data ) ) {
 			return $bool;
 		}
+
 		$available_qty   = false;
 		$get_goal_object = WCCT_Core()->public->wcct_get_goal_object( $single_data['goals'], $product_id );
 
 		if ( ! empty( $get_goal_object ) ) {
-			$quantity = isset($get_goal_object['quantity']) ? intval($get_goal_object['quantity']) : 0;
-			$sold_out = isset($get_goal_object['sold_out']) ? intval($get_goal_object['sold_out']) : 0;
+			$quantity      = isset( $get_goal_object['quantity'] ) ? intval( $get_goal_object['quantity'] ) : 0;
+			$sold_out      = isset( $get_goal_object['sold_out'] ) ? intval( $get_goal_object['sold_out'] ) : 0;
 			$available_qty = $quantity - $sold_out;
 		}
 
-		if ( false !== $available_qty && 'custom' === $get_goal_object['type'] ) {
+		$type = isset( $get_goal_object['type'] ) ? $get_goal_object['type'] : 'custom';
+		/**  filter to enable stock  */
+		$is_stock_disable = apply_filters( 'wcct_is_stock_enable', true );
+		if ( false !== $available_qty && 'custom' === $type && ! $is_stock_disable ) {
 			$bool = true;
 		}
 

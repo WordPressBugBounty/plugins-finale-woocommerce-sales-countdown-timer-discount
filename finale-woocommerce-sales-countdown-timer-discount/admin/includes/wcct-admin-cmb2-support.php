@@ -29,8 +29,8 @@ class WCCT_Admin_CMB2_Support {
 	/**
 	 * Output a message if the current page has the id of "2" (the about page)
 	 *
-	 * @param  object $field_args Current field args
-	 * @param  object $field Current field object
+	 * @param object $field_args Current field args
+	 * @param object $field Current field object
 	 */
 	public static function cmb_after_row_cb( $field_args, $field ) {
 		echo '</div></div>';
@@ -39,8 +39,8 @@ class WCCT_Admin_CMB2_Support {
 	/**
 	 * Output a message if the current page has the id of "2" (the about page)
 	 *
-	 * @param  object $field_args Current field args
-	 * @param  object $field Current field object
+	 * @param object $field_args Current field args
+	 * @param object $field Current field object
 	 */
 	public static function cmb_before_row_cb( $field_args, $field ) {
 		$default = array(

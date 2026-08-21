@@ -5,6 +5,7 @@ defined( 'ABSPATH' ) || exit;
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
 }
+
 #[AllowDynamicProperties]
 class WCCT_Post_Table extends WP_List_Table {
 
@@ -33,8 +34,8 @@ class WCCT_Post_Table extends WP_List_Table {
 
 	/**
 	 * Text to display if no items are present.
-	 * @since  1.0.0
 	 * @return  void
+	 * @since  1.0.0
 	 */
 	public function no_items() {
 		echo wpautop( __( 'No Campaign Available', 'finale-woocommerce-sales-countdown-timer-discount' ) );
@@ -43,11 +44,11 @@ class WCCT_Post_Table extends WP_List_Table {
 	/**
 	 * The content of each column.
 	 *
-	 * @param  array $item The current item in the list.
-	 * @param  string $column_name The key of the current column.
+	 * @param array $item The current item in the list.
+	 * @param string $column_name The key of the current column.
 	 *
-	 * @since  1.0.0
 	 * @return string              Output for the current column.
+	 * @since  1.0.0
 	 */
 	public function column_default( $item, $column_name ) {
 		switch ( $column_name ) {
@@ -168,10 +169,10 @@ class WCCT_Post_Table extends WP_List_Table {
 	/**
 	 * Content for the "product_name" column.
 	 *
-	 * @param  array $item The current item.
+	 * @param array $item The current item.
 	 *
-	 * @since  1.0.0
 	 * @return string       The content of this column.
+	 * @since  1.0.0
 	 */
 	public function column_status( $item ) {
 		$output = WCCT_Common::wcct_set_campaign_status( $item['id'] );
@@ -219,8 +220,8 @@ class WCCT_Post_Table extends WP_List_Table {
 
 	/**
 	 * Retrieve an array of possible bulk actions.
-	 * @since  1.0.0
 	 * @return array
+	 * @since  1.0.0
 	 */
 	public function get_bulk_actions() {
 		$actions = array();
@@ -230,8 +231,8 @@ class WCCT_Post_Table extends WP_List_Table {
 
 	/**
 	 * Prepare an array of items to be listed.
-	 * @since  1.0.0
 	 * @return array Prepared items.
+	 * @since  1.0.0
 	 */
 	public function prepare_items() {
 		$columns               = $this->get_columns();
@@ -253,8 +254,8 @@ class WCCT_Post_Table extends WP_List_Table {
 
 	/**
 	 * Retrieve an array of columns for the list table.
-	 * @since  1.0.0
 	 * @return array Key => Value pairs.
+	 * @since  1.0.0
 	 */
 	public function get_columns() {
 		$columns = array(
@@ -272,8 +273,8 @@ class WCCT_Post_Table extends WP_List_Table {
 
 	/**
 	 * Retrieve an array of sortable columns.
-	 * @since  1.0.0
 	 * @return array
+	 * @since  1.0.0
 	 */
 	public function get_sortable_columns() {
 		//        return array("Running","Finished","Schedule","Deactivated");

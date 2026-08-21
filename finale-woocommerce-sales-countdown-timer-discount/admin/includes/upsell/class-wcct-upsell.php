@@ -559,12 +559,28 @@ class WCCT_Upsell {
 	 * @return void
 	 */
 	public function xl_dismiss_notice() {
+		// Verify nonce for CSRF protection.
+		if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['security'] ) ), 'finale_upsells_dismiss_nonce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'finale-woocommerce-sales-countdown-timer-discount' ) ), 403 );
+		}
+
+		// Verify user has appropriate capability.
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'finale-woocommerce-sales-countdown-timer-discount' ) ), 403 );
+		}
+
 		if ( isset( $_POST['notice_displayed_count'] ) && ( '' != $_POST['notice_displayed_count'] ) ) {
-			$notice_displayed_count = $_POST['notice_displayed_count'];
+			$notice_displayed_count = sanitize_text_field( wp_unslash( $_POST['notice_displayed_count'] ) );
 		} else {
 			$notice_displayed_count = '100';
 		}
-		$this->dismiss_notice( $_POST['plugin'], $notice_displayed_count );
+
+		$plugin = isset( $_POST['plugin'] ) ? sanitize_text_field( wp_unslash( $_POST['plugin'] ) ) : '';
+		if ( empty( $plugin ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid plugin parameter.', 'finale-woocommerce-sales-countdown-timer-discount' ) ), 400 );
+		}
+
+		$this->dismiss_notice( $plugin, $notice_displayed_count );
 		wp_send_json_success();
 	}
 
@@ -604,10 +620,12 @@ class WCCT_Upsell {
 	 */
 	public function xl_upsells_notice_js() {
 		if ( true === $this->notice_displayed ) {
+			$nonce = wp_create_nonce( 'finale_upsells_dismiss_nonce' );
 			ob_start();
 			?>
             <script type="text/javascript">
                 (function ($) {
+                    var finaleUpsellNonce = '<?php echo esc_js( $nonce ); ?>';
                     var noticeWrap = $('#xl_notice_type_3');
                     var pluginShortSlug = noticeWrap.attr("data-plugin");
                     var pluginSlug = noticeWrap.attr("data-plugin-slug");
@@ -627,6 +645,7 @@ class WCCT_Upsell {
                             data: {
                                 plugin: pluginShortSlug,
                                 notice_displayed_count: xlDisplayedCount,
+                                security: finaleUpsellNonce,
                             },
                         });
                         $this.closest('.updated').slideUp('fast', function () {
@@ -639,6 +658,7 @@ class WCCT_Upsell {
                                 data: {
                                     plugin: pluginShortSlug,
                                     notice_displayed_count: '100',
+                                    security: finaleUpsellNonce,
                                 },
                             });
                         }

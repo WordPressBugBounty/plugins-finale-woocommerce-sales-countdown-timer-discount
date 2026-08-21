@@ -10,7 +10,7 @@ if ( ! function_exists( 'wcct_theme_helper_techmarket' ) ) {
 		// removing wcct action hooks on theme
 		remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_title' ), 9 );
 		remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_review' ), 11 );
-		remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_price' ), 17);
+		remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_price' ), 17 );
 		remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_add_cart' ), 39 );
 
 		add_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_title' ), 7 );

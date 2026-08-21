@@ -50,8 +50,6 @@ class WCCT_Common {
 		add_action( 'wp', array( __CLASS__, 'wcct_contain_current_query' ), 1 );
 
 		// ajax
-		add_action( 'wp_ajax_wcct_close_sticky_bar', array( __CLASS__, 'wcct_close_sticky_bar' ) );
-		add_action( 'wp_ajax_nopriv_wcct_close_sticky_bar', array( __CLASS__, 'wcct_close_sticky_bar' ) );
 		add_action( 'wp_ajax_wcct_quick_view_html', array( __CLASS__, 'wcct_quick_view_html' ) );
 
 		add_action( 'wcct_data_setup_done', array( __CLASS__, 'init_header_logs' ), 999 );
@@ -62,8 +60,8 @@ class WCCT_Common {
 		add_action( 'wcct_schedule_reset_state', array( __CLASS__, 'process_reset_state' ), 10, 1 );
 		add_action( 'plugins_loaded', array( __CLASS__, 'wcct_refresh_timer_ajax_callback' ) );
 
-		add_action( 'wp_ajax_wcct_clear_cache', array( __CLASS__, 'wcct_maybe_clear_cache' ) );
-		add_action( 'wp_ajax_nopriv_wcct_clear_cache', array( __CLASS__, 'wcct_maybe_clear_cache' ) );
+		add_action( 'wp_ajax_wcct_clear_cache', array( __CLASS__, 'wcct_maybe_clear_cache_ajax' ) );
+		add_action( 'wp_ajax_nopriv_wcct_clear_cache', array( __CLASS__, 'wcct_maybe_clear_cache_ajax' ) );
 
 		/**
 		 * Restoring stock on cancel order
@@ -232,6 +230,10 @@ class WCCT_Common {
 		if ( $is_ajax ) {
 			if ( ! check_ajax_referer( 'wcctaction-admin', 'security' ) ) {
 				die();
+			}
+			// Verify user has appropriate capability.
+			if ( ! current_user_can( 'manage_woocommerce' ) ) {
+				wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'finale-woocommerce-sales-countdown-timer-discount' ) ), 403 );
 			}
 			$options = array_merge( $defaults, $_POST );
 		} else {
@@ -711,6 +713,18 @@ class WCCT_Common {
 			return;
 		}
 
+		// Verify user has capability to edit this post.
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+
+		// Verify nonce for our custom fields (CMB2 handles its own nonce).
+		if ( isset( $_POST['wcct_settings_location'] ) || isset( $_POST['wcct_rule'] ) ) {
+			if ( ! isset( $_POST['wcct_save_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['wcct_save_nonce'] ) ), 'wcct_save_campaign_' . $post_id ) ) {
+				return;
+			}
+		}
+
 		$key = 'WCCT_INSTANCES';
 		if ( defined( 'ICL_LANGUAGE_CODE' ) && ICL_LANGUAGE_CODE !== '' ) {
 			$key .= '_' . ICL_LANGUAGE_CODE;
@@ -718,28 +732,66 @@ class WCCT_Common {
 
 		delete_transient( $key );
 		if ( isset( $_POST['wcct_settings_location'] ) ) {
-			$location = explode( ':', $_POST['wcct_settings_location'] );
+			$location = explode( ':', sanitize_text_field( wp_unslash( $_POST['wcct_settings_location'] ) ) );
 			$settings = array(
-				'location' => $location[0],
-				'hook'     => $location[1],
+				'location' => isset( $location[0] ) ? sanitize_key( $location[0] ) : '',
+				'hook'     => isset( $location[1] ) ? sanitize_key( $location[1] ) : '',
 			);
 
 			if ( 'custom' === $settings['hook'] ) {
-				$settings['custom_hook']     = $_POST['wcct_settings_location_custom_hook'];
-				$settings['custom_priority'] = $_POST['wcct_settings_location_custom_priority'];
+				$settings['custom_hook']     = isset( $_POST['wcct_settings_location_custom_hook'] ) ? sanitize_text_field( wp_unslash( $_POST['wcct_settings_location_custom_hook'] ) ) : '';
+				$settings['custom_priority'] = isset( $_POST['wcct_settings_location_custom_priority'] ) ? absint( $_POST['wcct_settings_location_custom_priority'] ) : 10;
 			} else {
 				$settings['custom_hook']     = '';
 				$settings['custom_priority'] = '';
 			}
 
-			$settings['type'] = $_POST['wcct_settings_type'];
+			$settings['type'] = isset( $_POST['wcct_settings_type'] ) ? sanitize_key( $_POST['wcct_settings_type'] ) : '';
 
 			update_post_meta( $post_id, '_wcct_settings', $settings );
 		}
 
 		if ( isset( $_POST['wcct_rule'] ) ) {
-			update_post_meta( $post_id, 'wcct_rule', $_POST['wcct_rule'] );
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Complex array, sanitized by wcct_sanitize_rule_array.
+			$rule_data = wp_unslash( $_POST['wcct_rule'] );
+			$rule_data = self::wcct_sanitize_rule_array( $rule_data );
+			update_post_meta( $post_id, 'wcct_rule', $rule_data );
 		}
+	}
+
+	/**
+	 * Sanitize rule array recursively.
+	 *
+	 * @param array $rules The rules array to sanitize.
+	 *
+	 * @return array Sanitized rules array.
+	 */
+	public static function wcct_sanitize_rule_array( $rules ) {
+		if ( ! is_array( $rules ) ) {
+			return array();
+		}
+
+		$sanitized = array();
+		foreach ( $rules as $group_id => $group ) {
+			$group_id = absint( $group_id );
+			if ( ! is_array( $group ) ) {
+				continue;
+			}
+			$sanitized[ $group_id ] = array();
+			foreach ( $group as $rule_id => $rule ) {
+				$rule_id = absint( $rule_id );
+				if ( ! is_array( $rule ) ) {
+					continue;
+				}
+				$sanitized[ $group_id ][ $rule_id ] = array(
+					'rule_type' => isset( $rule['rule_type'] ) ? sanitize_key( $rule['rule_type'] ) : '',
+					'operator'  => isset( $rule['operator'] ) ? sanitize_text_field( $rule['operator'] ) : '',
+					'condition' => isset( $rule['condition'] ) ? ( is_array( $rule['condition'] ) ? array_map( 'sanitize_text_field', $rule['condition'] ) : sanitize_text_field( $rule['condition'] ) ) : '',
+				);
+			}
+		}
+
+		return $sanitized;
 	}
 
 	public static function get_post_table_data( $trigger = 'all' ) {
@@ -1389,8 +1441,24 @@ class WCCT_Common {
 	}
 
 	public static function wcct_quick_view_html() {
-		$data        = self::get_item_data( $_POST['ID'] );
-		$camp_data   = get_post( $_POST['ID'] );
+		// Verify nonce for CSRF protection.
+		if ( ! isset( $_POST['security'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['security'] ) ), 'wcctaction-admin' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Security check failed.', 'finale-woocommerce-sales-countdown-timer-discount' ) ), 403 );
+		}
+
+		// Verify user has appropriate capability.
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			wp_send_json_error( array( 'message' => __( 'You do not have permission to perform this action.', 'finale-woocommerce-sales-countdown-timer-discount' ) ), 403 );
+		}
+
+		// Sanitize input.
+		$post_id = isset( $_POST['ID'] ) ? absint( $_POST['ID'] ) : 0;
+		if ( empty( $post_id ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid campaign ID.', 'finale-woocommerce-sales-countdown-timer-discount' ) ), 400 );
+		}
+
+		$data        = self::get_item_data( $post_id );
+		$camp_data   = get_post( $post_id );
 		$is_disabled = false;
 		if ( is_object( $camp_data ) && isset( $camp_data->post_status ) && ( WCCT_SHORT_SLUG . 'disabled' === $camp_data->post_status ) ) {
 			$is_disabled = true;
@@ -1434,7 +1502,7 @@ class WCCT_Common {
 
 		$timezone_format = _x( 'Y-m-d H:i:s', 'timezone date format' );
 
-		$state = self::wcct_get_campaign_status( $_POST['ID'] );
+		$state = self::wcct_get_campaign_status( $post_id );
 
 		$ticks    = array();
 		$discount = 'Off';
@@ -1798,6 +1866,79 @@ class WCCT_Common {
 			'id'   => filter_input( INPUT_GET, 'campID' ),
 		) );
 
+	}
+
+	/**
+	 * AJAX handler for cache clearing with rate limiting and token validation.
+	 * This endpoint is intentionally accessible to unauthenticated users because
+	 * it's called from the frontend when countdown timers expire.
+	 *
+	 * Security measures:
+	 * 1. Site-specific token validation (prevents random abuse)
+	 * 2. Rate limiting (1 minute) to prevent DoS attacks
+	 * 3. No-cache headers to prevent response caching
+	 *
+	 * @return void
+	 * @since 2.x.x
+	 */
+	public static function wcct_maybe_clear_cache_ajax() {
+		// Prevent caching of this AJAX response.
+		nocache_headers();
+
+		// 1. Verify site-specific token (proves request came from our JS).
+		$token          = isset( $_POST['wcct_token'] ) ? sanitize_text_field( wp_unslash( $_POST['wcct_token'] ) ) : '';
+		$expected_token = self::get_cache_clear_token();
+
+		if ( empty( $token ) || ! hash_equals( $expected_token, $token ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid token.', 'finale-woocommerce-sales-countdown-timer-discount' ) ), 403 );
+		}
+
+		// 2. Rate limit - only allow cache clear once per minute globally.
+		$last_clear = get_transient( 'wcct_last_cache_clear' );
+		if ( false !== $last_clear ) {
+			// Already cleared recently, silently succeed (no-op).
+			wp_send_json_success( array( 'message' => __( 'Cache already fresh.', 'finale-woocommerce-sales-countdown-timer-discount' ) ) );
+		}
+
+		// 3. Set rate limit transient (1 minute).
+		set_transient( 'wcct_last_cache_clear', time(), MINUTE_IN_SECONDS );
+
+		// 4. Actually clear cache.
+		self::wcct_maybe_clear_cache();
+
+		wp_send_json_success( array( 'message' => __( 'Cache cleared successfully.', 'finale-woocommerce-sales-countdown-timer-discount' ) ) );
+	}
+
+	/**
+	 * Generate a site-specific token for cache clear requests.
+	 * Uses a fallback chain to ensure a token is always available:
+	 * 1. NONCE_SALT (if defined and not empty)
+	 * 2. AUTH_KEY (if defined and not empty)
+	 * 3. Stored unique key in options (generated once per site)
+	 *
+	 * @return string The cache clear token.
+	 * @since 2.x.x
+	 */
+	public static function get_cache_clear_token() {
+		$secret_key = '';
+
+		// Try NONCE_SALT first.
+		if ( defined( 'NONCE_SALT' ) && ! empty( NONCE_SALT ) && 'put your unique phrase here' !== NONCE_SALT ) {
+			$secret_key = NONCE_SALT;
+		} // Fallback to AUTH_KEY.
+        elseif ( defined( 'AUTH_KEY' ) && ! empty( AUTH_KEY ) && 'put your unique phrase here' !== AUTH_KEY ) {
+			$secret_key = AUTH_KEY;
+		} // Final fallback: generate and store a unique key.
+		else {
+			$secret_key = get_option( 'wcct_cache_clear_secret' );
+			if ( empty( $secret_key ) ) {
+				// Generate a unique key: md5 of random 32 chars + site URL.
+				$secret_key = md5( wp_generate_password( 32, true, true ) . home_url() );
+				update_option( 'wcct_cache_clear_secret', $secret_key, false );
+			}
+		}
+
+		return substr( wp_hash( 'wcct_cache_clear_' . $secret_key, 'nonce' ), - 12, 10 );
 	}
 
 	public static function wcct_maybe_clear_cache() {

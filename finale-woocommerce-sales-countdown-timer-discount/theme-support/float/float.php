@@ -17,7 +17,7 @@ function wcct_theme_helper_float() {
 	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_review' ), 11 );
 	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_price' ), 17 );
 	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_short_desc' ), 21 );
-	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_add_cart' ), 39);
+	remove_action( 'woocommerce_single_product_summary', array( $wcct_core, 'wcct_position_below_add_cart' ), 39 );
 
 	add_action( 'wcct_float_theme_above_title', array( $wcct_core, 'wcct_position_above_title' ), 10 );
 	add_action( 'wcct_float_theme_below_title', array( $wcct_core, 'wcct_position_below_title' ), 10 );

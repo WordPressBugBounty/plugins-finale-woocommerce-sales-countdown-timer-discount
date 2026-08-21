@@ -82,6 +82,7 @@ class WCCT_Appearance {
 		$localize_arr['log_file']                  = $base_url . '/force.txt';
 		$localize_arr['refresh_timings']           = 'yes';
 		$localize_arr['reload_page_on_timer_ends'] = 'yes';
+		$localize_arr['cache_token']               = WCCT_Common::get_cache_clear_token();
 		$global_settings                           = WCCT_Common::get_global_default_settings();
 		if ( 'no' === $global_settings['wcct_reload_page_on_timer_ends'] ) {
 			$localize_arr['reload_page_on_timer_ends'] = 'no';
